@@ -377,44 +377,65 @@ h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:600;line-height:1.2}
 </footer>
 
 <script>
-// Show existing signup count on load
+// ============================================
+// HIER DEINE WERTE EINTRAGEN:
+// ============================================
+const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/12784TzSf9yWfuVvuUaM-Y_l9Z4QVA0yVogsDgzZ1U14/formResponse';
+const GOOGLE_ENTRY_ID = 'entry.731579136';
+// ============================================
+// Beispiel:
+// const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSf.../formResponse';
+// const GOOGLE_ENTRY_ID = 'entry.1234567890';
+// ============================================
+
 (function() {
-  const signups = JSON.parse(localStorage.getItem('hako_signups') || '[]');
-  const counter = document.getElementById('signupCount');
+  var signups = JSON.parse(localStorage.getItem('hako_signups') || '[]');
+  var counter = document.getElementById('signupCount');
   if (counter) counter.textContent = signups.length;
 })();
 
 function handleSignup(e) {
   e.preventDefault();
-  const form = e.target;
-  const email = form.querySelector('input[name="email"]').value;
-  
-  // TODO: Replace with your actual backend
-  // Easiest: Google Form submission or Supabase insert
-  console.log('Signup:', email);
-  
-  // Store locally
-  const signups = JSON.parse(localStorage.getItem('hako_signups') || '[]');
-  if (!signups.some(s => s.email === email)) {
-    signups.push({ email, date: new Date().toISOString() });
+  var form = e.target;
+  var emailInput = form.querySelector('input[name="email"]');
+  var email = emailInput.value;
+
+  // An Google Form senden
+  var formData = new FormData();
+  formData.append(GOOGLE_ENTRY_ID, email);
+
+  fetch(GOOGLE_FORM_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: formData
+  }).catch(function() {
+    // no-cors gibt immer "opaque" response, das ist normal
+  });
+
+  // Lokal speichern (als Backup)
+  var signups = JSON.parse(localStorage.getItem('hako_signups') || '[]');
+  if (!signups.some(function(s) { return s.email === email; })) {
+    signups.push({ email: email, date: new Date().toISOString() });
     localStorage.setItem('hako_signups', JSON.stringify(signups));
   }
-  
-  // Update counter
-  const counter = document.getElementById('signupCount');
+
+  // Counter aktualisieren
+  var counter = document.getElementById('signupCount');
   if (counter) counter.textContent = signups.length;
-  
-  // Show success in hero area
-  const formEl = document.getElementById('signupForm');
-  const successEl = document.getElementById('signupSuccess');
+
+  // Erfolg anzeigen (Hero-Bereich)
+  var formEl = document.getElementById('signupForm');
+  var successEl = document.getElementById('signupSuccess');
   if (formEl) formEl.style.display = 'none';
   if (successEl) successEl.style.display = 'block';
-  
-  const notes = document.querySelectorAll('.signup-note');
-  notes.forEach(n => { if(n.closest('#signup')) n.style.display = 'none'; });
-  
-  // Also show inline confirmation on the form that was submitted
-  form.innerHTML = '<p style="padding:14px;color:var(--green);font-weight:600">✓ Sie sind auf der Warteliste!</p>';
+
+  var notes = document.querySelectorAll('.signup-note');
+  notes.forEach(function(n) {
+    if (n.closest('#signup')) n.style.display = 'none';
+  });
+
+  // Inline-Bestätigung
+  form.innerHTML = '<p style="padding:14px;color:#0f6e56;font-weight:600">✓ Sie sind auf der Warteliste!</p>';
 }
 </script>
 
